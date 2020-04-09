@@ -1,6 +1,6 @@
+import os
 from stockholm import Stockholm
 import option
-import os
 
 def checkFoldPermission(path):
     if(path == 'USER_HOME/tmp/stockholm_export'):
