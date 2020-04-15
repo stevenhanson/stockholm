@@ -21,8 +21,8 @@ def parse_data(data):
     jobs = []
 
     for post in posts:
-       job = {'name': post['RecruitPostName'], 'posturl': post['PostURL'], 'responsibility': post['Responsibility']}
-       jobs.append(job)
+        job = {'name': post['RecruitPostName'], 'posturl': post['PostURL'], 'responsibility': post['Responsibility']}
+        jobs.append(job)
 
     print(jobs)
     # soup = BeautifulSoup(html, 'lxml')
