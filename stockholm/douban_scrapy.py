@@ -1,3 +1,5 @@
+import time
+
 import requests
 
 from bs4 import BeautifulSoup
@@ -36,6 +38,7 @@ def parse_html(html):
     next_page = mysoup.find('span', attrs={'class': 'next'}).find('a')
 
     if next_page:
+        time.sleep(1)
         new_url = base_url + next_page['href']
         parse_html(get_html(new_url))
 
@@ -59,4 +62,5 @@ html = get_html(base_url)
 parse_html(html)
 # print(movie_list)
 save_date(movie_list)
-
+# df = pd.DataFrame(movie_list)
+# print(df)
