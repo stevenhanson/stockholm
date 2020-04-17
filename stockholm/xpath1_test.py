@@ -16,7 +16,7 @@ text = response.text
 
 html = etree.HTML(text)
 ul = html.xpath("//div[@id='nowplaying']//ul[@class='lists']")[0]
-print(ul)
+# print(ul)
 
 lis = ul.xpath("./li")
 
