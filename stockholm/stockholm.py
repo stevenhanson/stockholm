@@ -15,49 +15,49 @@ from functools import partial
 class Stockholm(object):
 
     def __init__(self, args):
-        ## flag of if need to reload all stock data
+        # flag of if need to reload all stock data
         self.reload_data = args.reload_data
-        ## flag of if need to generate portfolio
+        # flag of if need to generate portfolio
         self.gen_portfolio = args.gen_portfolio
-        ## type of output file json/csv or both
+        # type of output file json/csv or both
         self.output_type = args.output_type
-        ## charset of output file utf-8/gbk
+        # charset of output file utf-8/gbk
         self.charset = args.charset
-        ## portfolio testing date range(# of days)
+        # portfolio testing date range(# of days)
         self.test_date_range = args.test_date_range
-        ## stock data loading start date(e.g. 2014-09-14)
+        # stock data loading start date(e.g. 2014-09-14)
         self.start_date = args.start_date
-        ## stock data loading end date
+        # stock data loading end date
         self.end_date = args.end_date
-        ## portfolio generating target date
+        # portfolio generating target date
         self.target_date = args.target_date
-        ## thread number
+        # thread number
         self.thread = args.thread
-        ## data file store path
+        # data file store path
         if(args.store_path == 'USER_HOME/tmp/stockholm_export'):
             self.export_folder = os.path.expanduser('~') + '/tmp/stockholm_export'
         else:
             self.export_folder = args.store_path
-        ## portfolio testing file path
+        # portfolio testing file path
         self.testfile_path = args.testfile_path
-        ## methods for back testing
+        # methods for back testing
         self.methods = args.methods
 
-        ## for getting quote symbols
+        # for getting quote symbols
         self.all_quotes_url = 'http://money.finance.sina.com.cn/d/api/openapi_proxy.php'
-        ## for loading quote data
+        # for loading quote data
         self.yql_url = 'http://query.yahooapis.com/v1/public/yql'
-        ## export file name
+        # export file name
         self.export_file_name = 'stockholm_export'
 
         self.index_array = ['000001.SS', '399001.SZ', '000300.SS']
         self.sh000001 = {'Symbol': '000001.SS', 'Name': '上证指数'}
         self.sz399001 = {'Symbol': '399001.SZ', 'Name': '深证成指'}
         self.sh000300 = {'Symbol': '000300.SS', 'Name': '沪深300'}
-        ## self.sz399005 = {'Symbol': '399005.SZ', 'Name': '中小板指'}
-        ## self.sz399006 = {'Symbol': '399006.SZ', 'Name': '创业板指'}
+        # self.sz399005 = {'Symbol': '399005.SZ', 'Name': '中小板指'}
+        # self.sz399006 = {'Symbol': '399006.SZ', 'Name': '创业板指'}
 
-        ## mongodb info
+        # mongodb info
         self.mongo_url = 'localhost'
         self.mongo_port = 27017
         self.database_name = args.db_name
@@ -172,8 +172,8 @@ class Stockholm(object):
         all_quotes.append(self.sh000001)
         all_quotes.append(self.sz399001)
         all_quotes.append(self.sh000300)
-        ## all_quotes.append(self.sz399005)
-        ## all_quotes.append(self.sz399006)
+        # all_quotes.append(self.sz399005)
+        # all_quotes.append(self.sz399006)
         
         try:
             count = 1
@@ -187,12 +187,12 @@ class Stockholm(object):
                     quote = {}
                     code = item[0]
                     name = item[2]
-                    ## convert quote code
+                    # convert quote code
                     if(code.find('sh') > -1):
                         code = code[2:] + '.SS'
                     elif(code.find('sz') > -1):
                         code = code[2:] + '.SZ'
-                    ## convert quote code end
+                    # convert quote code end
                     quote['Symbol'] = code
                     quote['Name'] = name
                     all_quotes.append(quote)
@@ -213,8 +213,8 @@ class Stockholm(object):
             yquery = 'select * from yahoo.finance.quotes where symbol = "' + quote['Symbol'].lower() + '"'
             r_params = {'q': yquery, 'format': 'json', 'env': 'http://datatables.org/alltables.env'}
             r = requests.get(self.yql_url, params=r_params)
-            ## print(r.url)
-            ## print(r.text)
+            # print(r.url)
+            # print(r.text)
             rjson = r.json()
             try:
                 quote_info = rjson['query']['results']['quote']
@@ -235,9 +235,9 @@ class Stockholm(object):
                 print(e + "\n")
                 if(not is_retry):
                     time.sleep(1)
-                    load_quote_info(quote, True) ## retry once for network issue
+                    self.load_quote_info(quote, True) # retry once for network issue
             
-        ## print(quote)
+        # print(quote)
         print("load_quote_info end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
         return quote
 
@@ -247,13 +247,13 @@ class Stockholm(object):
         start = timeit.default_timer()
         for idx, quote in enumerate(all_quotes):
             print("#" + str(idx + 1))
-            load_quote_info(quote, False)
+            self.load_quote_info(quote, False)
 
         print("load_all_quote_info end... time cost: " + str(round(timeit.default_timer() - start)) + "s")
         return all_quotes
 
     def load_quote_data(self, quote, start_date, end_date, is_retry, counter):
-        ## print("load_quote_data start..." + "\n")
+        # print("load_quote_data start..." + "\n")
         
         start = timeit.default_timer()
 
@@ -262,8 +262,8 @@ class Stockholm(object):
             r_params = {'q': yquery, 'format': 'json', 'env': 'http://datatables.org/alltables.env'}
             try:
                 r = requests.get(self.yql_url, params=r_params)
-                ## print(r.url)
-                ## print(r.text)
+                # print(r.url)
+                # print(r.text)
                 rjson = r.json()
                 quote_data = rjson['query']['results']['quote']
                 quote_data.reverse()
@@ -275,11 +275,11 @@ class Stockholm(object):
                 print("Error: Failed to load stock data... " + quote['Symbol'] + "/" + quote['Name'] + "\n")
                 if(not is_retry):
                     time.sleep(2)
-                    self.load_quote_data(quote, start_date, end_date, True, counter) ## retry once for network issue
+                    self.load_quote_data(quote, start_date, end_date, True, counter) # retry once for network issue
         
             print("load_quote_data " + quote['Symbol'] + "/" + quote['Name'] + " end..." + "\n")
-            ## print("time cost: " + str(round(timeit.default_timer() - start)) + "s." + "\n")
-            ## print("total count: " + str(len(counter)) + "\n")
+            # print("time cost: " + str(round(timeit.default_timer() - start)) + "s." + "\n")
+            # print("total count: " + str(len(counter)) + "\n")
         return quote
 
     def load_all_quote_data(self, all_quotes, start_date, end_date):
@@ -290,7 +290,7 @@ class Stockholm(object):
         counter = []
         mapfunc = partial(self.load_quote_data, start_date=start_date, end_date=end_date, is_retry=False, counter=counter)
         pool = ThreadPool(self.thread)
-        pool.map(mapfunc, all_quotes) ## multi-threads executing
+        pool.map(mapfunc, all_quotes) # multi-threads executing
         pool.close() 
         pool.join()
 
@@ -319,7 +319,7 @@ class Stockholm(object):
                         if(quote_data['Volume'] != '000' or quote_data['Symbol'] in self.index_array):
                             d = {}
                             d['Open'] = float(quote_data['Open'])
-                            ## d['Adj_Close'] = float(quote_data['Adj_Close'])
+                            # d['Adj_Close'] = float(quote_data['Adj_Close'])
                             d['Close'] = float(quote_data['Close'])
                             d['High'] = float(quote_data['High'])
                             d['Low'] = float(quote_data['Low'])
@@ -332,7 +332,7 @@ class Stockholm(object):
                     print(e)
                     print(quote)
 
-        ## calculate Change / 5 10 20 30 Day MA
+        # calculate Change / 5 10 20 30 Day MA
         for quote in all_quotes:
             if('Data' in quote):
                 try:
@@ -388,7 +388,7 @@ class Stockholm(object):
                     print(e)
                     print(quote)
 
-        ## calculate KDJ
+        # calculate KDJ
         for quote in all_quotes:
             if('Data' in quote):
                 try:
@@ -492,15 +492,15 @@ class Stockholm(object):
                     if(quote_data['Date'] == target_date):
                         target_idx = idx
                 if(target_idx is None):
-                    ## print(quote['Name'] + " data is not available at this date..." + "\n")
+                    # print(quote['Name'] + " data is not available at this date..." + "\n")
                     data_issue_count+=1
                     continue
                 
-                ## pick logic ##
+                # pick logic #
                 valid = False
                 for method in methods:
-                    ## print(method['name'])
-                    ## null_check = eval(method['null_check'])
+                    # print(method['name'])
+                    # null_check = eval(method['null_check'])
                     try:
                         value_check = eval(method['value_check'])
                         if(value_check):
@@ -513,10 +513,10 @@ class Stockholm(object):
                 if(valid):
                     continue
                                     
-                ## pick logic end ##
+                # pick logic end #
                 
             except KeyError as e:
-                ## print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
+                # print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
                 data_issue_count+=1
                 
         print("quote_pick end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
@@ -592,18 +592,18 @@ class Stockholm(object):
         all_quotes = self.load_all_quote_symbol()
         print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
         all_quotes = all_quotes
-        ## self.load_all_quote_info(all_quotes)
+        # self.load_all_quote_info(all_quotes)
         self.load_all_quote_data(all_quotes, start_date, end_date)
         self.data_process(all_quotes)
         
         self.data_export(all_quotes, output_types, None)
 
     def data_test(self, target_date, test_range, output_types):
-        ## loading test methods
+        # loading test methods
         methods = []
         path = self.testfile_path
         
-        ## from mongodb
+        # from mongodb
         if(path == 'mongodb'):
             print("Load testing methods from Mongodb...\n")
             client = MongoClient(self.mongo_url, self.mongo_port)
@@ -618,14 +618,14 @@ class Stockholm(object):
                 m = {'name': doc['name'], 'value_check': self.convert_value_check(doc['method'])}
                 methods.append(m)
                 
-        ## from test file
+        # from test file
         else:
             if not os.path.exists(path):
                 print("Portfolio test file is not existed, testing is aborted...\n")
                 return
             f = io.open(path, 'r', encoding='utf-8')
             for line in f:
-                if(line.startswith('##') or len(line.strip()) == 0):
+                if(line.startswith('#') or len(line.strip()) == 0):
                     continue
                 line = line.strip().strip('\n')
                 name = line[line.find('[')+1:line.find(']:')]
@@ -637,7 +637,7 @@ class Stockholm(object):
             print("No method is loaded, testing is aborted...\n")
             return
 
-        ## portfolio testing 
+        # portfolio testing 
         all_quotes = self.file_data_load()
         target_date_time = datetime.datetime.strptime(target_date, "%Y-%m-%d")
         for i in range(test_range):
@@ -649,7 +649,7 @@ class Stockholm(object):
                 self.data_export(res, output_types, 'result_' + date)
 
     def run(self):
-        ## output types
+        # output types
         output_types = []
         if(self.output_type == "json"):
             output_types.append("json")
@@ -658,12 +658,12 @@ class Stockholm(object):
         elif(self.output_type == "all"):
             output_types = ["json", "csv"]
             
-        ## loading stock data
+        # loading stock data
         if(self.reload_data == 'Y'):
             print("Start loading stock data...\n")
             self.data_load(self.start_date, self.end_date, output_types)
             
-        ## test & generate portfolio
+        # test & generate portfolio
         if(self.gen_portfolio == 'Y'):
             print("Start portfolio testing...\n")
             self.data_test(self.target_date, self.test_date_range, output_types)
